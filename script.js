@@ -71,6 +71,7 @@ window.onload = function () {
   };
 
   document.addEventListener("keydown", moveBird);
+  document.addEventListener("touchstart", moveBird);
 };
 
 // Update game frame
@@ -161,7 +162,13 @@ function placePipes() {
 
 // Move bird
 function moveBird(e) {
-  if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
+  e.preventDefault();
+  if (
+    e.code == "Space" ||
+    e.code == "ArrowUp" ||
+    e.code == "KeyX" ||
+    e.type == "touchstart"
+  ) {
     velocityY = -6;
 
     if (gameOver) {
