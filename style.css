@@ -5,7 +5,7 @@ body {
   width: 100%;
   height: 100vh;
   background: radial-gradient(rgb(26, 26, 26), rgb(78, 78, 78));
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 #container {
@@ -28,7 +28,6 @@ button {
   padding: .8em 1.5em;
   background: #fff;
   border-radius: .2em;
-  box-shadow: 0 5px rgb(224, 43, 43);
   font-weight: 500;
   font-family: monospace;
   cursor: pointer;
@@ -37,17 +36,38 @@ button {
   outline: transparent;
 }
 
+#kebal {
+  box-shadow: 0 5px rgb(224, 43, 43);
+}
+
+#plus {
+  box-shadow: 0 5px rgb(43, 224, 149);
+}
+
 button:focus {
   border: transparent;
   outline: transparent;
 }
 
-button:has(input[type="radio"]:checked) {
-  background-color: rgb(224, 43, 43);
+button:active {
   color: #fff;
   box-shadow: 0;
   transform: translateY(5px);
   box-shadow: 0 0 transparent;
+}
+#plus:active {
+  background: rgb(43, 224, 149);
+}
+
+#kebal:has(input[type="radio"]:checked) {
+  color: #fff;
+  box-shadow: 0;
+  transform: translateY(5px);
+  box-shadow: 0 0 transparent;
+}
+
+#kebal:has(input[type="radio"]:checked) {
+  background-color: rgb(224, 43, 43);
 }
 
 button input

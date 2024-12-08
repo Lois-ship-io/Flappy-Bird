@@ -79,11 +79,22 @@ window.onload = function () {
 		btnKebal.dataset.kebal =
 			btnKebal.dataset.kebal == "active" ? "non-active" : "active";
 		const input = btnKebal.querySelector('input[type="radio"]');
-		input.checked = !input.checked
+		input.checked = !input.checked;
+	});
+
+	// R
+	const btnPls = document.querySelector("#plus");
+	btnPls.addEventListener("click", () => {
+		score += 10;
+		pipesPassed += 20;
 	});
 };
 
-// Update game frame
+const saveScore = () => {
+	localStorage.setItem("score", score);
+};
+
+// Update function
 function update() {
 	requestAnimationFrame(update);
 	if (gameOver) {
@@ -91,7 +102,7 @@ function update() {
 	}
 	context.clearRect(0, 0, board.width, board.height);
 
-	// Adjust Difficulty based on performance
+	// Adjust Difficulty dynamically
 	adjustDifficulty();
 
 	// Bird movement
@@ -101,12 +112,13 @@ function update() {
 
 	if (bird.y > board.height) {
 		gameOver = true; // Burung jatuh ke bawah
+		saveScore();
 	}
 
 	// Pipes movement
 	for (let i = 0; i < pipeArray.length; i++) {
 		let pipe = pipeArray[i];
-		pipe.x += velocityX;
+		pipe.x += velocityX; // Pipa bergerak secara horizontal
 		context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
 
 		// If the bird passes the pipe, increment the score
@@ -117,9 +129,12 @@ function update() {
 		}
 
 		// Check collision
-		if (detectCollision(bird, pipe)) {
+		// Jika tombol kebal diklick. Maka akan membuat burung menjadi sakti
+		const kebal = document.querySelector("#kebal").dataset.kebal;
+		if (detectCollision(bird, pipe) && kebal == "non-active") {
 			collisions++; // Increment collisions
 			gameOver = true;
+			saveScore();
 		}
 	}
 
@@ -232,62 +247,4 @@ function enableVerticalPipeMovement() {
 		// Pipa bergerak naik-turun
 		pipe.y += Math.sin(Date.now() / 500) * 2; // Gerakan naik-turun
 	});
-}
-
-// Update function
-function update() {
-	requestAnimationFrame(update);
-	if (gameOver) {
-		return;
-	}
-	context.clearRect(0, 0, board.width, board.height);
-
-	// Adjust Difficulty dynamically
-	adjustDifficulty();
-
-	// Bird movement
-	velocityY += gravity;
-	bird.y = Math.max(bird.y + velocityY, 0);
-	context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
-
-	if (bird.y > board.height) {
-		gameOver = true; // Burung jatuh ke bawah
-	}
-
-	// Pipes movement
-	for (let i = 0; i < pipeArray.length; i++) {
-		let pipe = pipeArray[i];
-		pipe.x += velocityX; // Pipa bergerak secara horizontal
-		context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
-
-		// If the bird passes the pipe, increment the score
-		if (!pipe.passed && bird.x > pipe.x + pipe.width) {
-			score += 0.5;
-			pipesPassed++; // Increment pipes passed
-			pipe.passed = true;
-		}
-
-		// Check collision
-		// Jika tombol kebal diklick. Maka akan membuat burung menjadi sakti
-		const kebal = document.querySelector("#kebal").dataset.kebal;
-		if (detectCollision(bird, pipe) && kebal == "non-active") {
-			collisions++; // Increment collisions
-			gameOver = true;
-		}
-	}
-
-	// Remove pipes that are off the screen
-	while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
-		pipeArray.shift();
-	}
-
-	// Display score
-	context.fillStyle = "white";
-	context.font = "45px sans-serif";
-	context.fillText(score, 5, 45);
-
-	// If game over
-	if (gameOver) {
-		context.fillText("GAME OVER", 5, 90);
-	}
 }
