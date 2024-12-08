@@ -47,113 +47,127 @@ let collisions = 0; // Jumlah tabrakan
 
 // Load game
 window.onload = function () {
-  board = document.getElementById("board");
-  board.height = boardHeight;
-  board.width = boardWidth;
-  context = board.getContext("2d");
+	board = document.getElementById("board");
+	board.height = boardHeight;
+	board.width = boardWidth;
+	context = board.getContext("2d");
 
-  // Load images
-  birdImg = new Image(); //Ini untuk ngebuat gambar (via object JS)
-  birdImg.src = "./img/flappybird.png";
-  birdImg.onload = function () {
-    context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
-  };
+	// Load images
+	birdImg = new Image(); //Ini untuk ngebuat gambar (via object JS)
+	birdImg.src = "./img/flappybird.png";
+	birdImg.onload = function () {
+		context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+	};
 
-  topPipeImg = new Image();
-  topPipeImg.src = "./img/toppipe.png";
+	topPipeImg = new Image();
+	topPipeImg.src = "./img/toppipe.png";
 
-  bottomPipeImg = new Image();
-  bottomPipeImg.src = "./img/bottompipe.png";
+	bottomPipeImg = new Image();
+	bottomPipeImg.src = "./img/bottompipe.png";
 
-  // Wait until images are loaded before starting the game
-  topPipeImg.onload = () => {
-    bottomPipeImg.onload = () => {
-      requestAnimationFrame(update);
-      setInterval(placePipes, 1500);
-    };
-  };
+	// Wait until images are loaded before starting the game
+	topPipeImg.onload = () => {
+		bottomPipeImg.onload = () => {
+			requestAnimationFrame(update);
+			setInterval(placePipes, 1500);
+		};
+	};
 
-  document.addEventListener("keydown", moveBird);
-  document.addEventListener("touchstart", moveBird);
-  // R
-  const btnKebal = document.querySelector("#kebal");
-  btnKebal.addEventListener("click", () => {
-    btnKebal.dataset.kebal =
-      btnKebal.dataset.kebal == "active" ? "non-active" : "active";
-    const input = btnKebal.querySelector('input[type="radio"]');
-    input.checked = !input.checked;
-  });
+	document.addEventListener("keydown", moveBird);
+	document.addEventListener("touchstart", moveBird);
+	// R
+	const btnKebal = document.querySelector("#kebal");
+	btnKebal.addEventListener("click", () => {
+		btnKebal.dataset.kebal =
+			btnKebal.dataset.kebal == "active" ? "non-active" : "active";
+		const input = btnKebal.querySelector('input[type="radio"]');
+		input.checked = !input.checked;
+	});
 
-  // R
-  const btnPls = document.querySelector("#plus");
-  btnPls.addEventListener("click", () => {
-    score += 10;
-    pipesPassed += 20;
-  });
+	// R
+	const btnPls = document.querySelector("#plus");
+	btnPls.addEventListener("click", () => {
+		score += 10;
+		pipesPassed += 20;
+		playAudio("./audio/point.mp3");
+	});
 };
 
+// R
 const saveScore = () => {
   localStorage.setItem("score", score);
 };
 
+// R
+const playAudio = (path) => {
+	try {
+		const audio = new Audio(path);
+		audio.play();
+	} catch (err) {
+		console.error(err);
+	}
+};
 // Update function
 function update() {
-  requestAnimationFrame(update);
-  if (gameOver) {
-    return;
-  }
-  context.clearRect(0, 0, board.width, board.height);
+	requestAnimationFrame(update);
+	if (gameOver) {
+		return;
+	}
+	context.clearRect(0, 0, board.width, board.height);
 
-  // Adjust Difficulty dynamically
-  adjustDifficulty();
+	// Adjust Difficulty dynamically
+	adjustDifficulty();
 
-  // Bird movement
-  velocityY += gravity * gravityMultiplier;
-  bird.y = Math.max(bird.y + velocityY, 0);
-  context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+	// Bird movement
+	velocityY += gravity;
+	bird.y = Math.max(bird.y + velocityY, 0);
+	context.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
 
-  if (bird.y > board.height) {
-    gameOver = true; // Burung jatuh ke bawah
-    saveScore();
-  }
+	if (bird.y > board.height) {
+		gameOver = true; // Burung jatuh ke bawah
+		saveScore();
+		playAudio("./audio/lose.mp3");
+	}
 
-  // Pipes movement
-  for (let i = 0; i < pipeArray.length; i++) {
-    let pipe = pipeArray[i];
-    pipe.x += velocityX; // Pipa bergerak secara horizontal
-    context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
+	// Pipes movement
+	for (let i = 0; i < pipeArray.length; i++) {
+		let pipe = pipeArray[i];
+		pipe.x += velocityX; // Pipa bergerak secara horizontal
+		context.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
 
-    // If the bird passes the pipe, increment the score
-    if (!pipe.passed && bird.x > pipe.x + pipe.width) {
-      score += 0.5;
-      pipesPassed++; // Increment pipes passed
-      pipe.passed = true;
-    }
+		// If the bird passes the pipe, increment the score
+		if (!pipe.passed && bird.x > pipe.x + pipe.width) {
+			score += 0.5;
+			pipesPassed++; // Increment pipes passed
+			pipe.passed = true;
+			playAudio("./audio/point.mp3");
+		}
 
-    // Check collision
-    // Jika tombol kebal diklick. Maka akan membuat burung menjadi sakti
-    const kebal = document.querySelector("#kebal").dataset.kebal;
-    if (detectCollision(bird, pipe) && kebal == "non-active") {
-      collisions++; // Increment collisions
-      gameOver = true;
-      saveScore();
-    }
-  }
+		// Check collision
+		// Jika tombol kebal diklick. Maka akan membuat burung menjadi sakti
+		const kebal = document.querySelector("#kebal").dataset.kebal;
+		if (detectCollision(bird, pipe) && kebal == "non-active") {
+			collisions++; // Increment collisions
+			gameOver = true;
+			saveScore();
+			playAudio("./audio/lose.mp3");
+		}
+	}
 
-  // Remove pipes that are off the screen
-  while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
-    pipeArray.shift();
-  }
+	// Remove pipes that are off the screen
+	while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
+		pipeArray.shift();
+	}
 
-  // Display score
-  context.fillStyle = "white";
-  context.font = "45px sans-serif";
-  context.fillText(score, 5, 45);
+	// Display score
+	context.fillStyle = "white";
+	context.font = "45px sans-serif";
+	context.fillText(score, 5, 45);
 
-  // If game over
-  if (gameOver) {
-    context.fillText("GAME OVER", 5, 90);
-  }
+	// If game over
+	if (gameOver) {
+		context.fillText("GAME OVER", 5, 90);
+	}
 }
 
 // Place pipes
@@ -188,25 +202,26 @@ function placePipes() {
 
 // Move bird
 function moveBird(e) {
-  e.preventDefault();
-  if (
-    e.code == "Space" ||
-    e.code == "ArrowUp" ||
-    e.code == "KeyX" ||
-    e.type == "touchstart"
-  ) {
-    velocityY = -6;
+	e.preventDefault();
+	if (
+		e.code == "Space" ||
+		e.code == "ArrowUp" ||
+		e.code == "KeyX" ||
+		e.type == "touchstart"
+	) {
+		velocityY = -6;
+		playAudio("./audio/fly.mp3");
 
-    if (gameOver) {
-      bird.y = birdY;
-      pipeArray = [];
-      score = 0;
-      pipesPassed = 0;
-      collisions = 0;
-      gameOver = false;
-      velocityY = 0;
-    }
-  }
+		if (gameOver) {
+			bird.y = birdY;
+			pipeArray = [];
+			score = 0;
+			pipesPassed = 0;
+			collisions = 0;
+			gameOver = false;
+			velocityY = 0;
+		}
+	}
 }
 
 // Detect collision
