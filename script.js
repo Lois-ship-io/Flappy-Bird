@@ -87,13 +87,24 @@ window.onload = function () {
 	btnPls.addEventListener("click", () => {
 		score += 10;
 		pipesPassed += 20;
+		playAudio("./audio/point.mp3");
 	});
 };
 
+// R
 const saveScore = () => {
 	localStorage.setItem("score", score);
 };
 
+// R
+const playAudio = (path) => {
+	try {
+		const audio = new Audio(path);
+		audio.play();
+	} catch (err) {
+		console.error(err);
+	}
+};
 // Update function
 function update() {
 	requestAnimationFrame(update);
@@ -113,6 +124,7 @@ function update() {
 	if (bird.y > board.height) {
 		gameOver = true; // Burung jatuh ke bawah
 		saveScore();
+		playAudio("./audio/lose.mp3");
 	}
 
 	// Pipes movement
@@ -126,6 +138,7 @@ function update() {
 			score += 0.5;
 			pipesPassed++; // Increment pipes passed
 			pipe.passed = true;
+			playAudio("./audio/point.mp3");
 		}
 
 		// Check collision
@@ -135,6 +148,7 @@ function update() {
 			collisions++; // Increment collisions
 			gameOver = true;
 			saveScore();
+			playAudio("./audio/lose.mp3");
 		}
 	}
 
@@ -194,6 +208,7 @@ function moveBird(e) {
 		e.type == "touchstart"
 	) {
 		velocityY = -6;
+		playAudio("./audio/fly.mp3");
 
 		if (gameOver) {
 			bird.y = birdY;
@@ -237,7 +252,6 @@ function adjustDifficulty() {
 	// Aktifkan gerakan pipa vertikal jika pemain sudah melewati 20 pipa
 	if (pipesPassed > 20) {
 		enableVerticalPipeMovement();
-		console.log("mulai");
 	}
 }
 
