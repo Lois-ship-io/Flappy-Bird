@@ -10,12 +10,14 @@ let birdHeight = 24;
 let birdX = boardWidth / 8;
 let birdY = boardHeight / 2;
 let birdImg;
+let gravityMultiplier = 1;
+let pipeSpeedMultiplier = 1;
 
 let bird = {
-	x: birdX,
-	y: birdY,
-	width: birdWidth,
-	height: birdHeight,
+  x: birdX,
+  y: birdY,
+  width: birdWidth,
+  height: birdHeight,
 };
 
 // Pipes
@@ -87,13 +89,24 @@ window.onload = function () {
 	btnPls.addEventListener("click", () => {
 		score += 10;
 		pipesPassed += 20;
+		playAudio("./audio/point.mp3");
 	});
 };
 
+// R
 const saveScore = () => {
-	localStorage.setItem("score", score);
+  localStorage.setItem("score", score);
 };
 
+// R
+const playAudio = (path) => {
+	try {
+		const audio = new Audio(path);
+		audio.play();
+	} catch (err) {
+		console.error(err);
+	}
+};
 // Update function
 function update() {
 	requestAnimationFrame(update);
@@ -113,6 +126,7 @@ function update() {
 	if (bird.y > board.height) {
 		gameOver = true; // Burung jatuh ke bawah
 		saveScore();
+		playAudio("./audio/lose.mp3");
 	}
 
 	// Pipes movement
@@ -126,6 +140,7 @@ function update() {
 			score += 0.5;
 			pipesPassed++; // Increment pipes passed
 			pipe.passed = true;
+			playAudio("./audio/point.mp3");
 		}
 
 		// Check collision
@@ -135,6 +150,7 @@ function update() {
 			collisions++; // Increment collisions
 			gameOver = true;
 			saveScore();
+			playAudio("./audio/lose.mp3");
 		}
 	}
 
@@ -156,32 +172,32 @@ function update() {
 
 // Place pipes
 function placePipes() {
-	if (gameOver) {
-		return;
-	}
+  if (gameOver) {
+    return;
+  }
 
-	let randomPipeY = pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2);
-	let openingSpace = gapSize;
+  let randomPipeY = pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2);
+  let openingSpace = gapSize;
 
-	let topPipe = {
-		img: topPipeImg,
-		x: pipeX,
-		y: randomPipeY,
-		width: pipeWidth,
-		height: pipeHeight,
-		passed: false,
-	};
-	pipeArray.push(topPipe);
+  let topPipe = {
+    img: topPipeImg,
+    x: pipeX,
+    y: randomPipeY,
+    width: pipeWidth,
+    height: pipeHeight,
+    passed: false,
+  };
+  pipeArray.push(topPipe);
 
-	let bottomPipe = {
-		img: bottomPipeImg,
-		x: pipeX,
-		y: randomPipeY + pipeHeight + openingSpace,
-		width: pipeWidth,
-		height: pipeHeight,
-		passed: false,
-	};
-	pipeArray.push(bottomPipe);
+  let bottomPipe = {
+    img: bottomPipeImg,
+    x: pipeX,
+    y: randomPipeY + pipeHeight + openingSpace,
+    width: pipeWidth,
+    height: pipeHeight,
+    passed: false,
+  };
+  pipeArray.push(bottomPipe);
 }
 
 // Move bird
@@ -194,6 +210,7 @@ function moveBird(e) {
 		e.type == "touchstart"
 	) {
 		velocityY = -6;
+		playAudio("./audio/fly.mp3");
 
 		if (gameOver) {
 			bird.y = birdY;
@@ -209,42 +226,54 @@ function moveBird(e) {
 
 // Detect collision
 function detectCollision(a, b) {
-	return (
-		a.x < b.x + b.width &&
-		a.x + a.width > b.x &&
-		a.y < b.y + b.height &&
-		a.y + a.height > b.y
-	);
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
 }
 
 // Adjust difficulty based on performance
 // Adjust difficulty based on performance
 function adjustDifficulty() {
-	// Perubahan berbasis tabrakan dan jumlah pipa yang dilewati
-	if (collisions > 2) {
-		pipeSpeed = -2; // Slow down pipes
-		gapSize = boardHeight / 3.5; // Widen pipe gap
-	} else if (pipesPassed > 10) {
-		pipeSpeed = -3; // Increase pipe speed
-		gapSize = boardHeight / 4; // Narrow pipe gap
-	} else {
-		pipeSpeed = -2.5; // Normal speed
-		gapSize = boardHeight / 3; // Normal gap size
-	}
+  // Perubahan berbasis tabrakan dan jumlah pipa yang dilewati
+  if (collisions > 2) {
+    pipeSpeed = -2; // Slow down pipes
+    gapSize = boardHeight / 3.5; // Widen pipe gap
+  } else if (pipesPassed > 10) {
+    pipeSpeed = -3; // Increase pipe speed
+    gapSize = boardHeight / 4; // Narrow pipe gap
+  } else {
+    pipeSpeed = -2.5; // Normal speed
+    gapSize = boardHeight / 3; // Normal gap size
+  }
 
-	velocityX = pipeSpeed; // Apply speed to pipe movement
+  velocityX = pipeSpeed; // Apply speed to pipe movement
 
-	// Aktifkan gerakan pipa vertikal jika pemain sudah melewati 20 pipa
-	if (pipesPassed > 20) {
-		enableVerticalPipeMovement();
-		console.log("mulai");
-	}
+  // Aktifkan gerakan pipa vertikal jika pemain sudah melewati 20 pipa
+  if (pipesPassed > 20) {
+    enableVerticalPipeMovement();
+    console.log("mulai");
+  }
+
+  // S
+  // Meningkatkan kecepatan burung
+  if (score > 20) {
+    gravityMultiplier = 1.5; // Meningkat
+    pipeSpeedMultiplier = 2;
+  } else {
+    gravityMultiplier = 1; // Normal
+    pipeSpeedMultiplier = 1;
+  }
+
+  velocityX = pipeSpeed * pipeSpeedMultiplier;
 }
 
 // Fungsi untuk menambahkan gerakan vertikal pada pipa
 function enableVerticalPipeMovement() {
-	pipeArray.forEach((pipe) => {
-		// Pipa bergerak naik-turun
-		pipe.y += Math.sin(Date.now() / 500) * 2; // Gerakan naik-turun
-	});
+  pipeArray.forEach((pipe) => {
+    // Pipa bergerak naik-turun
+    pipe.y += Math.sin(Date.now() / 500) * 2; // Gerakan naik-turun
+  });
 }
